@@ -50,8 +50,7 @@ def load_static_page(filename):
     return HTMLResponse(content=lines, status_code=200)
     
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="app/templates")
 
 @app.get('/', response_class=HTMLResponse)
 async def main(request: Request):
