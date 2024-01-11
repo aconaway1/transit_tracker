@@ -6,8 +6,10 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from datetime import date
+import operator
 
 ENV_FILE = "env.yml"
+OBSERVED_CARS_FILE = "observed_cars.yml"
 
 VALID_LINES = [
     "redn",
@@ -68,6 +70,38 @@ async def add_car(car_no: Annotated[str, Form()], line: Annotated[str, Form()]):
     
     
     obs_date = date.today()
+    written_record = {}
+    written_record['car_no'] = car_no
+    written_record['line'] = line
+    written_record['obs_date'] = obs_date
+        
+    with open(OBSERVED_CARS_FILE, 'a') as file:
+        # Put the record in [] to make it a list element
+        file.write(yaml.safe_dump([written_record]))    
     
     return HTMLResponse(f"You observed car {car_no} on line {line} on {obs_date}.")
+
+
+@app.get('/cars')
+async def get_all_cars(request: Request):
+    with open(OBSERVED_CARS_FILE) as file:
+        observations = yaml.safe_load(file)
+        
+    # Sort the list by car number
+    sorted_obs = sorted(observations, key=operator.itemgetter('car_no'))
+    return sorted_obs
     
+@app.get('/cars/{car_no}')
+async def get_car(car_no):
+    with open(OBSERVED_CARS_FILE) as file:
+        observations = yaml.safe_load(file)
+        
+    returned_obs = []
+    for obs in observations:
+        if obs['car_no'] == car_no:
+            returned_obs.append(obs)
+            
+    if len(returned_obs) == 0:
+        return HTMLResponse(f"Car {car_no} not found.")
+            
+    return returned_obs
