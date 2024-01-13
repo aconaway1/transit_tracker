@@ -9,14 +9,8 @@
                 <BR><BR>
             <LABEL for="line">Line:</LABEL>
             <SELECT name="line">
-                <OPTION value="redn">Red, North</OPTION>
-                <OPTION value="reds">Red, South</OPTION>
-                <OPTION value="goldn">Gold, North</OPTION>
-                <OPTION value="golds">Gold, South</OPTION>
-                <OPTION value="bluee">Blue, East</OPTION>
-                <OPTION value="bluew">Blue, West</OPTION>
-                <OPTION value="greene">Green, East</OPTION>
-                <OPTION value="greenw">Green, West</OPTION>
+                {%- for line in lines %}
+                <OPTION value="{{ line[0] }}">{{ line[2] }}</OPTION>{% endfor %}
             </SELECT>
                 <BR><BR>
             <INPUT type="submit">

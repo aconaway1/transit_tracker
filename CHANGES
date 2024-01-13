@@ -1,2 +1,2 @@
-- Dumped `requirements.txt`
-- Added `Dockerfile`
+- Added Postgres backend
+- Added `NOTES` as scratchpad

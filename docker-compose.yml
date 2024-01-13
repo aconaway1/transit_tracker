@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+  web:
+    image: ttu-web
+    build:
+      dockerfile: ./Dockerfile
+    depends_on:
+      - db
+    ports:
+      - 8000:8000
+  db:
+    image: postgres:alpine
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ttupassword1
+      POSTGRES_USER: ttu
