@@ -1,2 +1,4 @@
+- In the middle of a machine transition, so committing early.
 - Added Postgres backend
 - Added `NOTES` as scratchpad
+- Working on DB backend integration
