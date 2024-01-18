@@ -13,14 +13,15 @@ services:
   db:
     image: postgres:alpine
     container_name: db
-    restart: always
-    ports:
-      - 5432:5432
+    restart: unless-stopped
+    # ports:
+    #   - 5432:5432
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ./pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: ttupassword1
       POSTGRES_USER: ttu
+      POSTGRES_DB: ttu
 
 volumes:
   pgdata:
