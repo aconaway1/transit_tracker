@@ -1,1 +1,3 @@
 - Commented out `driver` section of the `pgdata` volume
+- Blew away `pgdata` folder
+- Added PostGRESQL init script as mount to build tables
