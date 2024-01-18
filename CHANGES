@@ -1,4 +1,3 @@
-- In the middle of a machine transition, so committing early.
-- Added Postgres backend
-- Added `NOTES` as scratchpad
-- Working on DB backend integration
+- Commented out `driver` section of the `pgdata` volume
+- Blew away `pgdata` folder
+- Added PostGRESQL init script as mount to build tables
