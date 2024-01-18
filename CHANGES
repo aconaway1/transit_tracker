@@ -1,1 +1,4 @@
-- Added `.gitignore` to `pgdata` to ignore everything in the folder while keeping it
+- Linted
+- Removed unused vars from `main.py`
+- Not going to use the dictionary for the record in `add_car`
+- Removed `observed_cars.yml` completely
