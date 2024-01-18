@@ -23,7 +23,6 @@ services:
       POSTGRES_PASSWORD: ttupassword1
       POSTGRES_USER: ttu
       POSTGRES_DB: ttu
-
 volumes:
   pgdata:
     # driver: local
