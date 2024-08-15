@@ -3,14 +3,15 @@
     </HEAD>
 
     <BODY>
-        <FORM action="/add_car" method="post">
+        <FORM action="/add_ride" method="post">
+            {% if status %}<LABEL>{{ status }}</LABEL><BR>{% endif %}
             <LABEL>Car Number:</LABEL>
             <INPUT type="text" name="car_no">
                 <BR><BR>
             <LABEL for="line">Line:</LABEL>
             <SELECT name="line">
                 {%- for line in lines %}
-                <OPTION value="{{ line[0] }}">{{ line[2] }}</OPTION>{% endfor %}
+                <OPTION value="{{ line.shortname }}">{{ line.longname }}</OPTION>{% endfor %}
             </SELECT>
                 <BR><BR>
             <INPUT type="submit">

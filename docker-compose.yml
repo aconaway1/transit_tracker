@@ -1,28 +1,16 @@
-version: "3"
-
 services:
-  web:
-    image: ttu-web
-    container_name: web
-    build:
-      dockerfile: ./Dockerfile
-    depends_on:
-      - db
-    ports:
-      - 8000:8000
-  db:
-    image: postgres:alpine
-    container_name: db
-    restart: unless-stopped
-    # ports:
-    #   - 5432:5432
+  tt-app:
+    image: tt
+    restart: always
+    ports: 
+      - '8000:8000'
+#    healthcheck:
+#      test: ["CMD-SHELL", "curl --silent --fail localhost:8000/flask-health-check || exit 1"]
+#      interval: 10s
+#      timeout: 10s
+#      retries: 3
+#    command: guvicorn -w 3 -t 60 -b 0.0.0.0:8000 main:app
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./pg_init.sql:/docker-entrypoint-initdb.d/init_db.sql
-    environment:
-      POSTGRES_PASSWORD: ttupassword1
-      POSTGRES_USER: ttu
-      POSTGRES_DB: ttu
+      - ./data:/code/data
 volumes:
-  pgdata:
-    # driver: local
+  data:
