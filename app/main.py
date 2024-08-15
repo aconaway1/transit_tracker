@@ -8,57 +8,14 @@ from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-import psycopg2
-
 ENV_FILE = "env.yml"
+LINE_FILE = "linedata.yml"
+SEEN_CARS_FILE = "/code/data/seen_cars.yml"
 
-def get_cars():
-    """
-    Query the DB for the cars observed
-    """
-    db_conn = psycopg2.connect(
-        host="db",
-        database="ttu",
-        user=env_vars['db_user'],
-        password=env_vars['db_pass']
-    )
-    cur = db_conn.cursor()
-    cur.execute("select * from observed_cars")
-    results = cur.fetchall()
-    db_conn.close()
-    return results
 
-def get_a_car(car_no: int):
-    """
-    Query the DB for a specific car
-    """
-    db_conn = psycopg2.connect(
-        host="db",
-        database="ttu",
-        user=env_vars['db_user'],
-        password=env_vars['db_pass']
-    )
-    cur = db_conn.cursor()
-    cur.execute(f"select * from observed_cars where car_no = {car_no}")
-    results = cur.fetchall()
-    db_conn.close()
-    return results
-
-def load_lines():
-    """
-    Load the train lines from the DB
-    """
-    db_conn = psycopg2.connect(
-        host="db",
-        database="ttu",
-        user=env_vars['db_user'],
-        password=env_vars['db_pass']
-    )
-    cur = db_conn.cursor()
-    cur.execute("select * from lines")
-    results = cur.fetchall()
-    db_conn.close()
-    return results
+def load_lines() -> list:
+    with open(LINE_FILE, encoding="utf8") as file:
+        return yaml.safe_load(file)
 
 def load_env():
     """
@@ -67,6 +24,40 @@ def load_env():
     with open(ENV_FILE, encoding="utf8") as file:
         return yaml.safe_load(file)
 
+def get_rides() -> list:
+    with open(SEEN_CARS_FILE, encoding="utf8") as file:
+        return yaml.safe_load(file)
+
+def get_a_ride(queried_car_no: int) -> list :
+    seen_car_records = []
+    with open(SEEN_CARS_FILE, encoding="utf8") as file:
+        seen_cars = yaml.safe_load(file)
+    for seen_car in seen_cars:
+        if seen_car['car_no'] == queried_car_no:
+            seen_car_records.append(seen_car)
+    return seen_car_records
+
+
+async def add_ride_instance(car_no: int, line: str):
+    today = datetime.now().strftime("%Y-%m-%d")
+    ride_to_add = {
+        "car_no": car_no,
+        "line": line,
+        "date": today
+    }
+    rail_lines = load_lines()
+    found_line = False
+    for rail_line in rail_lines:
+        if line == rail_line['shortname']:
+            found_line = True
+    if not found_line:
+        return None
+
+
+    with open(SEEN_CARS_FILE, 'a') as f:
+        yaml_record = yaml.dump([ride_to_add])
+        f.write(yaml_record)
+    return ride_to_add
 
 env_vars = load_env()
 app = FastAPI()
@@ -78,60 +69,38 @@ async def main(request: Request):
     Show a form when / is called via get
     """
     lines = load_lines()
-    return templates.TemplateResponse(request=request, name="add_car.j2", context={"lines": lines})
-
-@app.post('/add_car')
-async def add_car(car_no: Annotated[str, Form()], line: Annotated[str, Form()]):
-    """
-    Add a car observation to the DB
-    """
-    today = datetime.now().strftime("%Y-%m-%d")
-    sql = 'INSERT INTO observed_cars (car_no, line, observation_date) VALUES (%s, %s, %s)'
-    val = (car_no, line, today)
-    db_conn = psycopg2.connect(
-        host="db",
-        database="ttu",
-        user=env_vars['db_user'],
-        password=env_vars['db_pass']
-    )
-    cur = db_conn.cursor()
-    cur.execute(sql, val)
-    db_conn.commit()
-    db_conn.close()
-    return HTMLResponse(f"You observed car {car_no} on line {line} on {today}.")
+    return templates.TemplateResponse(request=request, name="add_ride.j2", context={"lines": lines})
 
 
-@app.get('/cars')
-async def get_all_cars():
+@app.get('/rides')
+async def get_all_rides():
     """
     Show the user the cars observed
     """
-    parsed_cars = []
-    observations = get_cars()
-    lines = load_lines()
-    friendly_lines = {}
-    for line in lines:
-        friendly_lines[line[0]] = line[2]
-    for obs in observations:
-        parsed_cars.append({
-            "car_no": obs[0],
-            "line": friendly_lines[obs[1]],
-            "date_obs": obs[2]
-        })
-    return parsed_cars
+    return get_rides()
 
 
-@app.get('/cars/{car_no}')
+@app.get('/rides/{car_no}')
 async def get_car(car_no):
     """
     Show the user a specific car observed
     """
-    return get_a_car(car_no=car_no)
+    return get_a_ride(queried_car_no=car_no)
 
 
 @app.get('/lines')
 async def get_lines():
     """
-    Show the user the lines available in the DB
+    Show the user the lines available
     """
     return load_lines()
+
+@app.post('/add_ride')
+async def add_ride(request: Request, car_no: Annotated[str, Form()], line: Annotated[str, Form()]):
+    return_status = await add_ride_instance(car_no, line)
+    if return_status:
+        # return HTMLResponse(f"You observed car {car_no} on line {line}.")
+        lines = load_lines()
+        return templates.TemplateResponse(request=request, name="add_ride.j2", context={"lines": lines, "status": f"Added {car_no} on {line}"})
+    else:
+        return False

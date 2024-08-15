@@ -1,4 +1,3 @@
-- Linted
-- Removed unused vars from `main.py`
-- Not going to use the dictionary for the record in `add_car`
-- Removed `observed_cars.yml` completely
+- Removed Postgres stuff
+- Put everything back to YAML
+- Updated `add_ride.j2` to include a status line if a ride has been added
