@@ -1,6 +1,6 @@
 services:
   tt-app:
-    build: .
+    image: transit_tracker:0.2
     restart: always
     ports: 
       - '8000:8000'
