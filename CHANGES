@@ -1,8 +1,6 @@
-REPO PUSH
+Fixes #4
 
-Fixed #10
-
-- Added `push_to_github` to save the `seen_cars.yml` file to a repo
-- Pull GitHub info from `env.yml`
-- Added `env.yml` to `.gitignore` since it contains an API key
-- Incremented version to `0.3`
+- Added Slack webhook integration
+- Updated `README.md`
+- Added some exception handling (that's probably worthless)
+- `docker-compose.yml` might build an image...maybe.

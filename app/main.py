@@ -50,7 +50,15 @@ def push_to_github():
     url = f"{BASE_URL}/repos/{USERNAME}/{REPO_NAME}/contents/seen_cars.yml"
 
     # Get the current SHA
-    current_file_request = requests.get(url=url)
+    try:
+        current_file_request = requests.get(url=url)
+    except requests.exceptions.RequestException:
+        send_slack_msg(f"Couldn't commit to GitHub for some reason.\n{current_file_request.content}")
+
+    if current_file_request.status_code != 200:
+        send_slack_msg(f"This doesn't look right at all!\n{send_slack_msg(current_file_request.content)}")
+        return None
+
     sha = current_file_request.json()['sha']
 
     try:
@@ -70,7 +78,7 @@ def push_to_github():
     }
 
     body = {
-        "message": "Pushed from script",
+        "message": "Updated from transit_tracker API",
         "contributor": {
             "name": "Aaron Conaway",
             "email": "aaron@aconaway.com",
@@ -84,6 +92,31 @@ def push_to_github():
 
     return returned_data
 
+
+def send_slack_msg(message: str):
+
+    headers = {
+        "Content-type": "application/json"
+    }
+
+    body = {
+        "text": message,
+    }
+
+    slack_request = requests.post(
+        url=env_vars['slack']['slack_incoming_webhook'],
+        headers=headers,
+        data=json.dumps(body)
+    )
+
+    if slack_request.status_code != 200:
+        raise ValueError(
+        'Request to slack returned an error %s, the response is:\n%s'
+        % (response.status_code, response.text)
+    )
+
+    return slack_request
+
 async def add_ride_instance(car_no: int, line: str):
     today = datetime.now().strftime("%Y-%m-%d")
     ride_to_add = {
@@ -93,9 +126,11 @@ async def add_ride_instance(car_no: int, line: str):
     }
     rail_lines = load_lines()
     found_line = False
+    long_line_name = ""
     for rail_line in rail_lines:
         if line == rail_line['shortname']:
             found_line = True
+            long_line_name = rail_line['longname']
     if not found_line:
         return None
 
@@ -106,6 +141,9 @@ async def add_ride_instance(car_no: int, line: str):
 
     if env_vars['github']['github_enabled']:
         gihub_push = push_to_github()
+
+    if env_vars['slack']['slack_enabled']:
+        slack_reply = send_slack_msg(f"Added {car_no} on line {long_line_name} at {today}.")
 
     return ride_to_add
 
