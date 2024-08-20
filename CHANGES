@@ -1,4 +1,4 @@
-MESSAGING
+Fixes #4
 
 - Added Slack webhook integration
 - Updated `README.md`
