@@ -1,3 +1,5 @@
-- Removed Postgres stuff
-- Put everything back to YAML
-- Updated `add_ride.j2` to include a status line if a ride has been added
+REPO PUSH
+
+- Added `push_to_github` to save the `seen_cars.yml` file to a repo
+- Pull GitHub info from `env.yml`
+- Added `env.yml` to `.gitignore` since it contains an API key
