@@ -28,17 +28,20 @@ See `/redoc` for more details.
 
 ## YAML Data
 
-- `env.yml`: The environment variables; does nothing at the moment
+- `env.yml`: The environment variables including those used by GitHub and Slack actions
 
 ```
 name: Aaron's Transit Tracker
-version: 0.2
+version: XXX
 github:
   github_enabled: True
   github_username: <MY GITHUB USERNAME>
   github_api_token: <MY GITHUB API TOKEN>
   github_repo_name: <THE REPO WHERE THE UPDATES ARE STORED>
   github_base_url: https://api.github.com
+slack:
+  slack_enabled: True
+  slack_incoming_webhook: <MY WEBHOOK URL>
 ```
 
 See [this link](https://docs.github.com/en/rest/authentication/authenticating-to-the-rest-api?apiVersion=2022-11-28) for more info about the API token.
