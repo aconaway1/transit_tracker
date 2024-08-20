@@ -104,7 +104,8 @@ async def add_ride_instance(car_no: int, line: str):
         yaml_record = yaml.dump([ride_to_add])
         f.write(yaml_record)
 
-    gihub_push = push_to_github()
+    if env_vars['github']['github_enabled']:
+        gihub_push = push_to_github()
 
     return ride_to_add
 

@@ -3,3 +3,4 @@ REPO PUSH
 - Added `push_to_github` to save the `seen_cars.yml` file to a repo
 - Pull GitHub info from `env.yml`
 - Added `env.yml` to `.gitignore` since it contains an API key
+- Incremented version to `0.3`

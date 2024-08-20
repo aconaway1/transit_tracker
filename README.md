@@ -29,8 +29,27 @@ See `/redoc` for more details.
 ## YAML Data
 
 - `env.yml`: The environment variables; does nothing at the moment
+
+```
+name: Aaron's Transit Tracker
+version: 0.2
+github:
+  github_enabled: True
+  github_username: <MY GITHUB USERNAME>
+  github_api_token: <MY GITHUB API TOKEN>
+  github_repo_name: <THE REPO WHERE THE UPDATES ARE STORED>
+  github_base_url: https://api.github.com
+```
+
+See [this link](https://docs.github.com/en/rest/authentication/authenticating-to-the-rest-api?apiVersion=2022-11-28) for more info about the API token.
+
 - `linedate.yml`: A list of train lines with short and long names
+
+This is set up for MARTA by default.
+
 - `data/seen_cars.yml`: The rides you've taken with car number, date, and line
+
+This is the file that will be committed to the GitHub repo by default.
 
 ## Templates
 
