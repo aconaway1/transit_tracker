@@ -70,3 +70,20 @@ up the ports.
 This is where the `seen_cars.yml` file lives. This is mounted on the container to share
 that data between the container and host. Its primary purpose, though, is to provide 
 persistence between container runs.
+
+## Utilities
+
+### `ride_importer.py`
+
+This is a standalone Python script to take my old CSV file (called `rides_to_import.csv`) where I was tracking my rides and put them
+into the `seen_cars.yml` file.
+
+The format of the records is
+
+> car_no,date,car_type,line
+
+`date` is in `%d/%m/%Y` format.
+
+`car_type` is not used, so it's ignored for now.
+
+`line` is the shortname of the line ("reds", "bluew", etc.)

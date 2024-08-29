@@ -1,6 +1,6 @@
 services:
   tt-app:
-    image: transit_tracker:0.4
+    image: transit_tracker:latest
     build:
       context: .
       dockerfile: Dockerfile
