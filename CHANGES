@@ -1,6 +1,6 @@
-Fixes #4
+Added Ride Scrubber
 
-- Added Slack webhook integration
-- Updated `README.md`
-- Added some exception handling (that's probably worthless)
-- `docker-compose.yml` might build an image...maybe.
+- Added `ride_scrubber.py`:
+-- Goes through the `seen_cars.yml` file and looks for invalid car number
+-- A valid car number is <= the CAR_NO_LIMIT, which is 9999 by default
+-- This lets you put test data in as large numbers to be removed later
