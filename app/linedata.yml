@@ -14,3 +14,5 @@
   longname: "Green East"
 - shortname: "greenw"
   longname: "Green West"
+- shortname: "street"
+  longname: "Streetcar"
