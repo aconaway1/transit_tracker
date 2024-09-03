@@ -262,12 +262,13 @@ async def ride_report(request: Request):
 @app.get('/scrub/')
 async def scrub_test_rides(request: Request):
     valid_rides = []
-
+    scrubbed_rides = []
     rides = get_rides()
 
     for ride in rides:
         if int(ride['car_no']) > CAR_NO_LIMIT:
             send_slack_msg(f"Car number {ride['car_no']} is not valid. Removing")
+            scrubbed_rides.append(ride)
             continue
         else:
             valid_rides.append(ride)
@@ -277,8 +278,35 @@ async def scrub_test_rides(request: Request):
             yaml_record = yaml.dump([ride])
             f.write(yaml_record)
 
-    return {"message": f"Scrubbed values above {CAR_NO_LIMIT}"}
+    if scrubbed_rides:
+        return {"message": f"Scrubbed values above {CAR_NO_LIMIT}",
+                "values": scrubbed_rides}
+    else:
+        return {"message": "No rides scrubbed."}
 
+
+@app.get('/stock')
+async def stock_report():
+    rides = get_rides()
+    stock_count = {
+        "CQ310": 0,
+        "CQ311": 0,
+        "CQ312": 0,
+        "CQ400": 0
+    }
+    for ride in rides:
+        if int(ride['car_no']) >= 101 and int(ride['car_no']) <= 200:
+            stock_count['CQ310'] += 1
+        if int(ride['car_no']) >= 501 and int(ride['car_no']) <= 520:
+            stock_count['CQ310'] += 1
+        if int(ride['car_no']) >= 201 and int(ride['car_no']) <= 320:
+            stock_count['CQ311'] += 1
+        if int(ride['car_no']) >= 601 and int(ride['car_no']) <= 664:
+            stock_count['CQ312'] += 1
+        if int(ride['car_no']) >= 667 and int(ride['car_no']) <= 702:
+            stock_count['CQ312'] += 1
+
+    return {"CQ310": stock_count["CQ310"], "CQ311": stock_count["CQ311"], "CQ312": stock_count["CQ312"]}
 
 @app.get("/ping")
 async def ping():
