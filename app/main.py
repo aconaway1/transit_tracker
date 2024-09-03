@@ -1,6 +1,7 @@
 """
 A web interface to track MARTA car rides
 """
+import pprint
 from datetime import datetime
 from typing import Annotated
 import yaml
@@ -148,9 +149,48 @@ async def add_ride_instance(car_no: int, line: str):
 
     return ride_to_add
 
+def update_from_github():
+    TOKEN = env_vars['github']['github_api_token']
+    USERNAME = env_vars['github']['github_username']
+    REPO_NAME = env_vars['github']['github_repo_name']
+    BASE_URL = env_vars['github']['github_base_url']
+
+    url = f"{BASE_URL}/repos/{USERNAME}/{REPO_NAME}/contents/seen_cars.yml"
+
+    # Get the current SHA
+    try:
+        updated_file_request = requests.get(url=url)
+    except requests.exceptions.RequestException:
+        send_slack_msg(f"Couldn't get the file from GitHub for some reason.\n{updated_file_request.content}")
+        return None
+
+    if updated_file_request.status_code != 200:
+        send_slack_msg(f"Something went wrong with updating from Github!\n{send_slack_msg(updated_file_request.content)}")
+        return None
+
+    returned_content = updated_file_request.json()['content']
+    returned_content = base64.b64decode(returned_content)
+    returned_content = returned_content.decode('ascii')
+
+    print(f"{returned_content=}")
+    print(f"{type(returned_content)=}")
+
+    loaded_yaml = yaml.safe_load(returned_content)
+    with open(SEEN_CARS_FILE, encoding="utf8", mode='w') as f:
+        for ride in loaded_yaml:
+            yaml_record = yaml.dump([ride])
+            f.write(yaml_record)
+
+    return returned_content
+
 env_vars = load_env()
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+@app.on_event("startup")
+async def startup():
+    if env_vars['github']['github_download_on_startup'] and env_vars['github']['github_enabled']:
+        response = update_from_github()
 
 @app.get('/', response_class=HTMLResponse)
 async def main(request: Request):
@@ -207,14 +247,12 @@ async def ride_report(request: Request):
         long_line = ""
         for rail_line in rail_lines:
             if str(ride['line']) == rail_line['shortname']:
-                print(f"{ride['line']=}  {rail_line['longname']}")
                 long_line = rail_line['longname']
                 found_line = True
         if found_line:
             ride_record = {"car_no": ride['car_no'], "date": ride['date'], "line": long_line}
         else:
             ride_record = ride
-        print(f"{ride_record}")
         ride_data.append(ride_record)
 
     sorted_list = sorted(ride_data, key=lambda x: x['car_no'])
@@ -238,3 +276,8 @@ async def scrub_test_rides(request: Request):
         for ride in valid_rides:
             yaml_record = yaml.dump([ride])
             f.write(yaml_record)
+
+
+@app.get("/ping")
+async def ping():
+    return {"message": "pong"}

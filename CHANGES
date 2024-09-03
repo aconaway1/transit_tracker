@@ -1,4 +1,8 @@
-Updated README.md
+Download `seen_cars.yml` at startup
 
-- Better explains `env.yml`
-- Fixes #21
+- Added `/ping` method for no apparent reason
+- Removed some leftover print statements in the report module
+- Using `@app.on_event("startup")` to kick off a download
+-- Added `github_download_on_startup` to `env.yml` to control downloading on startup
+-- Updated `README.md` with new directive
+-- Fixes #14
