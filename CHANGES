@@ -1,10 +1,4 @@
-Add Ride Scrubber
+Updated README.md
 
-- Incremented version to 0.7
-- Added `/scrub` to `main.py`
--- Scrubs test rides from YAML
--- Anything above car number "CAR_NO_LIMIT" gets scrubbed
--- "CAR_NO_LIMIT" is 9999 here
-- Added `footer.j2` to templates
--- Provides navigation footer
-- Fixes #19
+- Better explains `env.yml`
+- Fixes #21

@@ -43,8 +43,30 @@ slack:
   slack_enabled: True
   slack_incoming_webhook: <MY WEBHOOK URL>
 ```
+This file has sensitive information in it, so it's not part of the repo. You're going to have to generate the file
+yourself and put it in the `app` folder.
 
-See [this link](https://docs.github.com/en/rest/authentication/authenticating-to-the-rest-api?apiVersion=2022-11-28) for more info about the API token.
+The name and version are no really used. You can ignore them.
+
+The `github` section sets up the GitHub repos where you're storing your data. This is not the repo for this code.
+
+If you don't want to use GitHub, then set `github_enable` to `False`.
+
+`github_username` is your GitHub username.
+
+`github_api_token` is your personal access token for your storage repo. See [this link](https://docs.github.com/en/rest/authentication/authenticating-to-the-rest-api?apiVersion=2022-11-28) for more info about 
+how to get that working.
+
+`github_repo_name` is your repo where you want to store the data.
+
+`github_base_url` is where GitHub lives. Don't change this unless GitHub told you to do so.
+
+The `slack` section is for setting up Slack notifications.
+
+If you don't want to notify a Slack channel for changes, set `slack_enabled` to `False`.
+
+`slack_incoming_webhook` is the URL given by Slack for notifing your channel. You can check out [this link](https://api.slack.com/messaging/webhooks) on
+how to set that up.
 
 - `linedate.yml`: A list of train lines with short and long names
 
