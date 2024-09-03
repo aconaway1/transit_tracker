@@ -52,6 +52,8 @@ The `github` section sets up the GitHub repos where you're storing your data. Th
 
 If you don't want to use GitHub, then set `github_enable` to `False`.
 
+If you don't want to download a fresh copy of your data at server startup, set `github_download_on_startup` to `False`.
+
 `github_username` is your GitHub username.
 
 `github_api_token` is your personal access token for your storage repo. See [this link](https://docs.github.com/en/rest/authentication/authenticating-to-the-rest-api?apiVersion=2022-11-28) for more info about 
