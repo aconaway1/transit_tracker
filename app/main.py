@@ -277,6 +277,8 @@ async def scrub_test_rides(request: Request):
             yaml_record = yaml.dump([ride])
             f.write(yaml_record)
 
+    return {"message": f"Scrubbed values above {CAR_NO_LIMIT}"}
+
 
 @app.get("/ping")
 async def ping():
