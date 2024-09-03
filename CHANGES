@@ -1,7 +1,9 @@
-Added Ride Report
+Add Ride Scrubber
 
-- Incremented version to 0.6
-- Added `ride_report.j2` to templates folder
-- Added `/report` to `main.py`
--- Shows an HTML table with the rides
--- Fixes #18
+- Incremented version to 0.7
+- Added `/scrub` to `main.py`
+-- Scrubs test rides from YAML
+-- Anything above car number "CAR_NO_LIMIT" gets scrubbed
+-- "CAR_NO_LIMIT" is 9999 here
+- Added `footer.j2` to templates
+-- Provides navigation footer
