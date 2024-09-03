@@ -15,6 +15,7 @@ import json
 ENV_FILE = "env.yml"
 LINE_FILE = "linedata.yml"
 SEEN_CARS_FILE = "/code/data/seen_cars.yml"
+CAR_NO_LIMIT = 9999
 
 
 def load_lines() -> list:
@@ -220,3 +221,20 @@ async def ride_report(request: Request):
 
     return templates.TemplateResponse(request=request, name="ride_report.j2", context={"rides": sorted_list})
 
+@app.get('/scrub/')
+async def scrub_test_rides(request: Request):
+    valid_rides = []
+
+    rides = get_rides()
+
+    for ride in rides:
+        if int(ride['car_no']) > CAR_NO_LIMIT:
+            send_slack_msg(f"Car number {ride['car_no']} is not valid. Removing")
+            continue
+        else:
+            valid_rides.append(ride)
+
+    with open(SEEN_CARS_FILE, encoding="utf8", mode='w') as f:
+        for ride in valid_rides:
+            yaml_record = yaml.dump([ride])
+            f.write(yaml_record)
