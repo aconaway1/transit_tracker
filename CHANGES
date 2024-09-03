@@ -7,3 +7,4 @@ Add Ride Scrubber
 -- "CAR_NO_LIMIT" is 9999 here
 - Added `footer.j2` to templates
 -- Provides navigation footer
+- Fixes #19
