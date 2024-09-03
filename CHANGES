@@ -1,4 +1,7 @@
-Fix `ride_importer.py` datetime format mismatch
+Added rolling stock report
 
-- Changed output strftime to `%Y-%m-%d`
-- Fixes #22
+- Version 0.9
+- Added `/stock` to FastAPI'
+-- Fixed #20
+- Updated `/scrub` (for no apparent reason) to tell what was removed
+- Updated `footer.j2` to include link to main form
