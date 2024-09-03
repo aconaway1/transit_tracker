@@ -1,8 +1,4 @@
-Download `seen_cars.yml` at startup
+Fix `ride_importer.py` datetime format mismatch
 
-- Added `/ping` method for no apparent reason
-- Removed some leftover print statements in the report module
-- Using `@app.on_event("startup")` to kick off a download
--- Added `github_download_on_startup` to `env.yml` to control downloading on startup
--- Updated `README.md` with new directive
--- Fixes #14
+- Changed output strftime to `%Y-%m-%d`
+- Fixes #22
