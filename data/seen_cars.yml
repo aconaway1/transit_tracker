@@ -57,7 +57,7 @@
   line: goldn
 - car_no: '210'
   date: 01/15/2024
-  line: greenn
+  line: goldn
 - car_no: '213'
   date: 02/10/2024
   line: reds
@@ -199,3 +199,24 @@
 - car_no: '210'
   date: 08/27/2024
   line: reds
+- car_no: '1001'
+  date: 08/27/2024
+  line: streetcar
+- car_no: '664434'
+  date: '2024-08-31'
+  line: bluee
+- car_no: '237'
+  date: '2024-08-31'
+  line: reds
+- car_no: '245'
+  date: '2024-08-31'
+  line: redn
+- car_no: '204'
+  date: '2024-09-01'
+  line: reds
+- car_no: '146'
+  date: '2024-09-01'
+  line: redn
+- car_no: '4232424'
+  date: '2024-09-03'
+  line: goldn

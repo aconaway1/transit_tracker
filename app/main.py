@@ -192,3 +192,31 @@ async def add_ride(request: Request, car_no: Annotated[str, Form()], line: Annot
         return templates.TemplateResponse(request=request, name="add_ride.j2", context={"lines": lines, "status": f"Added {car_no} on {line}"})
     else:
         return False
+
+
+@app.get('/report')
+async def ride_report(request: Request):
+    ride_data = []
+    rail_lines = load_lines()
+    with open(SEEN_CARS_FILE, encoding="utf8") as file:
+        seen_cars = yaml.safe_load(file)
+
+    for ride in seen_cars:
+        found_line = False
+        long_line = ""
+        for rail_line in rail_lines:
+            if str(ride['line']) == rail_line['shortname']:
+                print(f"{ride['line']=}  {rail_line['longname']}")
+                long_line = rail_line['longname']
+                found_line = True
+        if found_line:
+            ride_record = {"car_no": ride['car_no'], "date": ride['date'], "line": long_line}
+        else:
+            ride_record = ride
+        print(f"{ride_record}")
+        ride_data.append(ride_record)
+
+    sorted_list = sorted(ride_data, key=lambda x: x['car_no'])
+
+    return templates.TemplateResponse(request=request, name="ride_report.j2", context={"rides": sorted_list})
+
