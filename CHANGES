@@ -1,7 +1,6 @@
-Added rolling stock report
+Polishing
 
-- Version 0.9
-- Added `/stock` to FastAPI'
--- Fixed #20
-- Updated `/scrub` (for no apparent reason) to tell what was removed
-- Updated `footer.j2` to include link to main form
+- Version 0.9a
+- Linted
+- Modified `/ping` to return app name and version
+- Added CSS to `add_ride.j2`
