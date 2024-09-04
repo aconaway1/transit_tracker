@@ -1,25 +1,29 @@
 """
 A web interface to track MARTA car rides
 """
-import pprint
 from datetime import datetime
 from typing import Annotated
+import base64
+import hashlib
+import json
+import requests
 import yaml
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-import requests
-import base64
-import hashlib
-import json
+
 
 ENV_FILE = "env.yml"
 LINE_FILE = "linedata.yml"
 SEEN_CARS_FILE = "/code/data/seen_cars.yml"
 CAR_NO_LIMIT = 9999
+CONN_TIMEOUT = 10
 
 
 def load_lines() -> list:
+    """
+    Return the list of rail lines from LINE_FILE
+    """
     with open(LINE_FILE, encoding="utf8") as file:
         return yaml.safe_load(file)
 
@@ -31,10 +35,16 @@ def load_env():
         return yaml.safe_load(file)
 
 def get_rides() -> list:
+    """
+    Return the list of rides from SEEN_CARS_FILE
+    """
     with open(SEEN_CARS_FILE, encoding="utf8") as file:
         return yaml.safe_load(file)
 
 def get_a_ride(queried_car_no: int) -> list :
+    """
+    Return a list of rides on a particular car
+    """
     seen_car_records = []
     with open(SEEN_CARS_FILE, encoding="utf8") as file:
         seen_cars = yaml.safe_load(file)
@@ -44,21 +54,25 @@ def get_a_ride(queried_car_no: int) -> list :
     return seen_car_records
 
 def push_to_github():
-    TOKEN = env_vars['github']['github_api_token']
-    USERNAME = env_vars['github']['github_username']
-    REPO_NAME = env_vars['github']['github_repo_name']
-    BASE_URL = env_vars['github']['github_base_url']
+    """
+    Push the new SEEN_CARS_FILE to the GitHub repo
+    """
+    token = env_vars['github']['github_api_token']
+    username = env_vars['github']['github_username']
+    repo_name = env_vars['github']['github_repo_name']
+    base_url = env_vars['github']['github_base_url']
 
-    url = f"{BASE_URL}/repos/{USERNAME}/{REPO_NAME}/contents/seen_cars.yml"
+    url = f"{base_url}/repos/{username}/{repo_name}/contents/seen_cars.yml"
 
     # Get the current SHA
     try:
-        current_file_request = requests.get(url=url)
+        current_file_request = requests.get(url=url, timeout=CONN_TIMEOUT)
     except requests.exceptions.RequestException:
-        send_slack_msg(f"Couldn't commit to GitHub for some reason.\n{current_file_request.content}")
+        send_slack_msg("Couldn't commit to GitHub for some reason.\n")
 
     if current_file_request.status_code != 200:
-        send_slack_msg(f"This doesn't look right at all!\n{send_slack_msg(current_file_request.content)}")
+        send_slack_msg(f"This doesn't look right at all!\n"
+                       f"{send_slack_msg(current_file_request.content)}")
         return None
 
     sha = current_file_request.json()['sha']
@@ -75,7 +89,7 @@ def push_to_github():
 
     headers = {
         "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {TOKEN}",
+        "Authorization": f"Bearer {token}",
         "X-GitHub-Api-Version": "2022-11-28"
     }
 
@@ -90,13 +104,16 @@ def push_to_github():
     }
     sha = hashlib.sha1()
 
-    returned_data = requests.put(url=url, headers=headers, data=json.dumps(body))
+    returned_data = requests.put(url=url, headers=headers, data=json.dumps(body),
+                                 timeout=CONN_TIMEOUT)
 
     return returned_data
 
 
 def send_slack_msg(message: str):
-
+    """
+    Send a message to Slack
+    """
     headers = {
         "Content-type": "application/json"
     }
@@ -108,18 +125,22 @@ def send_slack_msg(message: str):
     slack_request = requests.post(
         url=env_vars['slack']['slack_incoming_webhook'],
         headers=headers,
-        data=json.dumps(body)
+        data=json.dumps(body),
+        timeout=CONN_TIMEOUT
     )
 
     if slack_request.status_code != 200:
         raise ValueError(
-        'Request to slack returned an error %s, the response is:\n%s'
-        % (response.status_code, response.text)
+        f'Request to slack returned an error. The response is:\n'
+        f'{slack_request.status_code, slack_request.text}'
     )
 
     return slack_request
 
 async def add_ride_instance(car_no: int, line: str):
+    """
+    Add a ride to the SEEN_CARS_FILE
+    """
     today = datetime.now().strftime("%Y-%m-%d")
     ride_to_add = {
         "car_no": car_no,
@@ -137,7 +158,7 @@ async def add_ride_instance(car_no: int, line: str):
         return None
 
 
-    with open(SEEN_CARS_FILE, 'a') as f:
+    with open(SEEN_CARS_FILE, 'a', encoding="utf8") as f:
         yaml_record = yaml.dump([ride_to_add])
         f.write(yaml_record)
 
@@ -150,30 +171,31 @@ async def add_ride_instance(car_no: int, line: str):
     return ride_to_add
 
 def update_from_github():
-    TOKEN = env_vars['github']['github_api_token']
-    USERNAME = env_vars['github']['github_username']
-    REPO_NAME = env_vars['github']['github_repo_name']
-    BASE_URL = env_vars['github']['github_base_url']
+    """
+    Pull down a fresh SEEN_CARS_FILE from GitHub
+    """
+    # TOKEN = env_vars['github']['github_api_token']
+    username = env_vars['github']['github_username']
+    repo_name = env_vars['github']['github_repo_name']
+    base_url = env_vars['github']['github_base_url']
 
-    url = f"{BASE_URL}/repos/{USERNAME}/{REPO_NAME}/contents/seen_cars.yml"
+    url = f"{base_url}/repos/{username}/{repo_name}/contents/seen_cars.yml"
 
     # Get the current SHA
     try:
-        updated_file_request = requests.get(url=url)
+        updated_file_request = requests.get(url=url, timeout=CONN_TIMEOUT)
     except requests.exceptions.RequestException:
-        send_slack_msg(f"Couldn't get the file from GitHub for some reason.\n{updated_file_request.content}")
+        send_slack_msg("Couldn't get the file from GitHub for some reason.")
         return None
 
     if updated_file_request.status_code != 200:
-        send_slack_msg(f"Something went wrong with updating from Github!\n{send_slack_msg(updated_file_request.content)}")
+        send_slack_msg(f"Something went wrong with updating from Github!\n"
+                       f"{send_slack_msg(updated_file_request.content)}")
         return None
 
     returned_content = updated_file_request.json()['content']
     returned_content = base64.b64decode(returned_content)
     returned_content = returned_content.decode('ascii')
-
-    print(f"{returned_content=}")
-    print(f"{type(returned_content)=}")
 
     loaded_yaml = yaml.safe_load(returned_content)
     with open(SEEN_CARS_FILE, encoding="utf8", mode='w') as f:
@@ -189,8 +211,12 @@ templates = Jinja2Templates(directory="templates")
 
 @app.on_event("startup")
 async def startup():
+    """
+    Get a new SEEN_CARS_FILE from GitHub if settings allow
+    """
     if env_vars['github']['github_download_on_startup'] and env_vars['github']['github_enabled']:
         response = update_from_github()
+
 
 @app.get('/', response_class=HTMLResponse)
 async def main(request: Request):
@@ -226,17 +252,24 @@ async def get_lines():
 
 @app.post('/add_ride')
 async def add_ride(request: Request, car_no: Annotated[str, Form()], line: Annotated[str, Form()]):
+    """
+    Call to add a new ride
+    """
     return_status = await add_ride_instance(car_no, line)
     if return_status:
         # return HTMLResponse(f"You observed car {car_no} on line {line}.")
         lines = load_lines()
-        return templates.TemplateResponse(request=request, name="add_ride.j2", context={"lines": lines, "status": f"Added {car_no} on {line}"})
-    else:
-        return False
+        return templates.TemplateResponse(request=request, name="add_ride.j2",
+                                          context={"lines": lines,
+                                                   "status": f"Added {car_no} on {line}"})
+    return False
 
 
 @app.get('/report')
 async def ride_report(request: Request):
+    """
+    Show the use a ride report
+    """
     ride_data = []
     rail_lines = load_lines()
     with open(SEEN_CARS_FILE, encoding="utf8") as file:
@@ -257,10 +290,15 @@ async def ride_report(request: Request):
 
     sorted_list = sorted(ride_data, key=lambda x: x['car_no'])
 
-    return templates.TemplateResponse(request=request, name="ride_report.j2", context={"rides": sorted_list})
+    return templates.TemplateResponse(request=request, name="ride_report.j2",
+                                      context={"rides": sorted_list})
 
 @app.get('/scrub/')
-async def scrub_test_rides(request: Request):
+# async def scrub_test_rides(request: Request):
+async def scrub_test_rides():
+    """
+    Remove all ride with car_no > CAR_NO_LIMIT
+    """
     valid_rides = []
     scrubbed_rides = []
     rides = get_rides()
@@ -269,7 +307,6 @@ async def scrub_test_rides(request: Request):
         if int(ride['car_no']) > CAR_NO_LIMIT:
             send_slack_msg(f"Car number {ride['car_no']} is not valid. Removing")
             scrubbed_rides.append(ride)
-            continue
         else:
             valid_rides.append(ride)
 
@@ -281,12 +318,14 @@ async def scrub_test_rides(request: Request):
     if scrubbed_rides:
         return {"message": f"Scrubbed values above {CAR_NO_LIMIT}",
                 "values": scrubbed_rides}
-    else:
-        return {"message": "No rides scrubbed."}
+    return {"message": "No rides scrubbed."}
 
 
 @app.get('/stock')
 async def stock_report():
+    """
+    Show the user a summary of the rolling stock ridden
+    """
     rides = get_rides()
     stock_count = {
         "CQ310": 0,
@@ -306,8 +345,12 @@ async def stock_report():
         if int(ride['car_no']) >= 667 and int(ride['car_no']) <= 702:
             stock_count['CQ312'] += 1
 
-    return {"CQ310": stock_count["CQ310"], "CQ311": stock_count["CQ311"], "CQ312": stock_count["CQ312"]}
+    return {"CQ310": stock_count["CQ310"], "CQ311": stock_count["CQ311"],
+            "CQ312": stock_count["CQ312"]}
 
 @app.get("/ping")
 async def ping():
-    return {"message": "pong"}
+    """
+    A URL to make sure this is working
+    """
+    return {"app_name": env_vars['name'], "version": env_vars['version']}
