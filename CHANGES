@@ -1,6 +1,5 @@
-Polishing
+Testing
 
-- Version 0.9a
-- Linted
-- Modified `/ping` to return app name and version
-- Added CSS to `add_ride.j2`
+- Added `tests/main_test.py` that checks functionality of the API
+-- Queries a bunch of stuff and makes sure we're getting 200 back
+-- Updated `README.md`

@@ -111,3 +111,11 @@ The format of the records is
 `car_type` is not used, so it's ignored for now.
 
 `line` is the shortname of the line ("reds", "bluew", etc.)
+
+### `tests/test_main.py`
+
+Runs a bunch of queries against the API to make sure everything is running correctly. If we don't get a `200` back,
+the tests will fail. I wrote this as a quick test when new versions were published, but it can be used to make sure
+any new instance is working.
+
+> python -m unittest main/test_main.py
