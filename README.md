@@ -31,8 +31,6 @@ See `/redoc` for more details.
 - `env.yml`: The environment variables including those used by GitHub and Slack actions
 
 ```
-name: Aaron's Transit Tracker
-version: XXX
 github:
   github_enabled: True
   github_username: <MY GITHUB USERNAME>
@@ -42,11 +40,15 @@ github:
 slack:
   slack_enabled: True
   slack_incoming_webhook: <MY WEBHOOK URL>
+mastodon:
+  mastodon_enabled: True
+  mastodon_base_url: "<URL TO MASTODON INSTANCE>"
+  mastodon_token: "<MASTODON APP TOKEN>"
 ```
 This file has sensitive information in it, so it's not part of the repo. You're going to have to generate the file
 yourself and put it in the `app` folder.
 
-The name and version are no really used. You can ignore them.
+### GitHub Config
 
 The `github` section sets up the GitHub repos where you're storing your data. This is not the repo for this code.
 
@@ -63,12 +65,26 @@ how to get that working.
 
 `github_base_url` is where GitHub lives. Don't change this unless GitHub told you to do so.
 
+### Slack Config
+
 The `slack` section is for setting up Slack notifications.
 
 If you don't want to notify a Slack channel for changes, set `slack_enabled` to `False`.
 
 `slack_incoming_webhook` is the URL given by Slack for notifing your channel. You can check out [this link](https://api.slack.com/messaging/webhooks) on
 how to set that up.
+
+### Mastodon Config
+
+The `mastodon` section is for posting updates to Mastodon.
+
+If you don't want to post to Mastodon, set `mastodon_enabled` to `False`.
+
+`mastodon_base_url` is the base URL of your Mastodon instance. It's usually just `https://<YOUR INSTANCE>`.
+  
+`mastodon_token` is the app key that you set up for API calls to Mastodon. See [this link](https://docs.joinmastodon.org/client/intro/) 
+as a "getting started" point. In summary, while in your Mastodon account, go to `Preferences > Development` and
+add an application.
 
 - `linedate.yml`: A list of train lines with short and long names
 

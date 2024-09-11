@@ -214,3 +214,15 @@
 - car_no: '146'
   date: '2024-09-01'
   line: redn
+- car_no: '228'
+  date: '2024-09-06'
+  line: reds
+- car_no: '229'
+  date: '2024-09-06'
+  line: reds
+- car_no: '256'
+  date: '2024-09-07'
+  line: goldn
+- car_no: '295'
+  date: '2024-09-07'
+  line: redn

@@ -6,11 +6,13 @@ from typing import Annotated
 import base64
 import hashlib
 import json
+import jinja2
 import requests
 import yaml
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from mastodon import Mastodon
 
 
 ENV_FILE = "env.yml"
@@ -18,6 +20,9 @@ LINE_FILE = "linedata.yml"
 SEEN_CARS_FILE = "/code/data/seen_cars.yml"
 CAR_NO_LIMIT = 9999
 CONN_TIMEOUT = 10
+
+APP_NAME = "Aaron's Transit Tracker"
+APP_VERSION = "0.10"
 
 
 def load_lines() -> list:
@@ -69,6 +74,7 @@ def push_to_github():
         current_file_request = requests.get(url=url, timeout=CONN_TIMEOUT)
     except requests.exceptions.RequestException:
         send_slack_msg("Couldn't commit to GitHub for some reason.\n")
+        return None
 
     if current_file_request.status_code != 200:
         send_slack_msg(f"This doesn't look right at all!\n"
@@ -137,6 +143,14 @@ def send_slack_msg(message: str):
 
     return slack_request
 
+async def get_line_longname(shortname):
+    rail_lines = load_lines()
+    long_line_name = ""
+    for rail_line in rail_lines:
+        if shortname == rail_line['shortname']:
+            return rail_line['longname']
+    return None
+
 async def add_ride_instance(car_no: int, line: str):
     """
     Add a ride to the SEEN_CARS_FILE
@@ -157,7 +171,6 @@ async def add_ride_instance(car_no: int, line: str):
     if not found_line:
         return None
 
-
     with open(SEEN_CARS_FILE, 'a', encoding="utf8") as f:
         yaml_record = yaml.dump([ride_to_add])
         f.write(yaml_record)
@@ -166,7 +179,19 @@ async def add_ride_instance(car_no: int, line: str):
         gihub_push = push_to_github()
 
     if env_vars['slack']['slack_enabled']:
-        slack_reply = send_slack_msg(f"Added {car_no} on line {long_line_name} at {today}.")
+        if int(car_no) < CAR_NO_LIMIT:
+            slack_reply = send_slack_msg(f"Added {car_no} on line {long_line_name} at {today}.")
+        else:
+            slack_reply = send_slack_msg(f"TEST: Added {car_no} on line {long_line_name} at {today}.")
+
+    if env_vars['mastodon']['mastodon_enabled'] and int(car_no) < CAR_NO_LIMIT:
+        long_line = await get_line_longname(line)
+        line_name, direction = long_line.split(" ")
+        render_data = {"car_no": car_no, "line": line_name, "direction": direction.lower()}
+        post_template = templates.get_template("toot.j2")
+        rendered_msg = post_template.render(render_data)
+        masto_conn = Mastodon(access_token=env_vars['mastodon']['mastodon_token'], api_base_url=env_vars['mastodon']['mastodon_base_url'])
+        toot_result = masto_conn.status_post(rendered_msg)
 
     return ride_to_add
 
@@ -353,4 +378,4 @@ async def ping():
     """
     A URL to make sure this is working
     """
-    return {"app_name": env_vars['name'], "version": env_vars['version']}
+    return {"app_name": APP_NAME, "version": APP_VERSION}
