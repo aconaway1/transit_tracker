@@ -1,5 +1,11 @@
-Testing
+Add Mastodon Integration
 
-- Added `tests/main_test.py` that checks functionality of the API
--- Queries a bunch of stuff and makes sure we're getting 200 back
--- Updated `README.md`
+- Version 0.10
+- Added Mastodon integration via `Mastodon.py` module
+- Fixes #31
+- Updated `README.md` with info for Mastodon features
+- Added `toot.j2` template for post
+- Refreshed `requirements.txt` for new packages
+- Add `get_long_name` function
+- If car_no >= CAR_NO_LIMIT, Slack messages say "TEST" in them and no Mastodon update is sent.
+- Moved app name and version to the `main.py` to make `env.yml` more accurate.
