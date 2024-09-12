@@ -6,7 +6,6 @@ from typing import Annotated
 import base64
 import hashlib
 import json
-import jinja2
 import requests
 import yaml
 from fastapi import FastAPI, Request, Form
@@ -22,7 +21,7 @@ CAR_NO_LIMIT = 9999
 CONN_TIMEOUT = 10
 
 APP_NAME = "Aaron's Transit Tracker"
-APP_VERSION = "0.10"
+APP_VERSION = "1.0"
 
 
 def load_lines() -> list:
@@ -144,8 +143,10 @@ def send_slack_msg(message: str):
     return slack_request
 
 async def get_line_longname(shortname):
+    """
+    Return the long name (eg., "Red South") from the shortname (eg. "reds")
+    """
     rail_lines = load_lines()
-    long_line_name = ""
     for rail_line in rail_lines:
         if shortname == rail_line['shortname']:
             return rail_line['longname']
@@ -182,7 +183,8 @@ async def add_ride_instance(car_no: int, line: str):
         if int(car_no) < CAR_NO_LIMIT:
             slack_reply = send_slack_msg(f"Added {car_no} on line {long_line_name} at {today}.")
         else:
-            slack_reply = send_slack_msg(f"TEST: Added {car_no} on line {long_line_name} at {today}.")
+            slack_reply = send_slack_msg(f"TEST: Added {car_no} on line {long_line_name} "
+                                         f"at {today}.")
 
     if env_vars['mastodon']['mastodon_enabled'] and int(car_no) < CAR_NO_LIMIT:
         long_line = await get_line_longname(line)
@@ -190,7 +192,8 @@ async def add_ride_instance(car_no: int, line: str):
         render_data = {"car_no": car_no, "line": line_name, "direction": direction.lower()}
         post_template = templates.get_template("toot.j2")
         rendered_msg = post_template.render(render_data)
-        masto_conn = Mastodon(access_token=env_vars['mastodon']['mastodon_token'], api_base_url=env_vars['mastodon']['mastodon_base_url'])
+        masto_conn = Mastodon(access_token=env_vars['mastodon']['mastodon_token'],
+                              api_base_url=env_vars['mastodon']['mastodon_base_url'])
         toot_result = masto_conn.status_post(rendered_msg)
 
     return ride_to_add
@@ -313,7 +316,7 @@ async def ride_report(request: Request):
             ride_record = ride
         ride_data.append(ride_record)
 
-    sorted_list = sorted(ride_data, key=lambda x: x['car_no'])
+    sorted_list = sorted(ride_data, key=lambda x: int(x['car_no']))
 
     return templates.TemplateResponse(request=request, name="ride_report.j2",
                                       context={"rides": sorted_list})

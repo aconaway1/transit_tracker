@@ -1,9 +1,6 @@
 services:
   tt-app:
-    image: transit_tracker:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: transit_tracker:1.0
     restart: always
     ports: 
       - '8000:8000'
