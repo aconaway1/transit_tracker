@@ -1,11 +1,9 @@
-Add Mastodon Integration
+Version 1.0
 
-- Version 0.10
-- Added Mastodon integration via `Mastodon.py` module
-- Fixes #31
-- Updated `README.md` with info for Mastodon features
-- Added `toot.j2` template for post
-- Refreshed `requirements.txt` for new packages
-- Add `get_long_name` function
-- If car_no >= CAR_NO_LIMIT, Slack messages say "TEST" in them and no Mastodon update is sent.
-- Moved app name and version to the `main.py` to make `env.yml` more accurate.
+- Fixes #33
+- Version 1.0
+- Updated `README.md` for some clarity
+- Cleaned up `docker-compose.yml` and `Dockerfile` a bit
+- Python to version 3.12 now
+- Removed import and scrubbing CLI utilities
+- Linted
