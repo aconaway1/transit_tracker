@@ -1,6 +1,4 @@
-Version 1.1.1
+Version 1.1.2
 
-- Added `css.j2` to include consistent CSS
-- Converted HTML templates to use `css.j2`
-- Stole a CSS from a site to make it all consistent
-- Fixes #36
+- Consistent API responses
+- Fixes #39

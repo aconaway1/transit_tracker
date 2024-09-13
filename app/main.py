@@ -22,7 +22,7 @@ CAR_NO_LIMIT = 9999
 CONN_TIMEOUT = 10
 
 APP_NAME = "Aaron's Transit Tracker"
-APP_VERSION = "1.1.1"
+APP_VERSION = "1.1.2"
 
 
 def load_lines() -> list:
@@ -264,7 +264,11 @@ async def main(request: Request, user_agent: Annotated[str | None, Header()] = N
     if is_browser(user_agent):
         lines = load_lines()
         return templates.TemplateResponse(request=request, name="add_ride.j2", context={"lines": lines})
-    return {"app_name": APP_NAME, "version": APP_VERSION}
+    return {
+        "success": "True",
+        "message": "This is the root. You have to do something else to make progress.",
+        "data": json.dumps({"app_name": APP_NAME, "version": APP_VERSION})
+    }
 
 
 @app.get('/rides')
@@ -281,7 +285,11 @@ async def get_all_rides(request: Request, user_agent: Annotated[str | None, Head
             list_expanded.append(added_record)
         return templates.TemplateResponse(request=request, name="rides.j2",
                                           context={"rides": list_expanded})
-    return sorted_list
+    return {
+        "success": "True",
+        "message": f"All rides",
+        "data": json.dumps(sorted_list)
+    }
 
 
 @app.get('/rides/{car_no}')
@@ -294,7 +302,11 @@ async def get_car(request: Request, user_agent: Annotated[str | None, Header()] 
     if is_browser(user_agent):
         return templates.TemplateResponse(request=request, name="rides.j2",
                                           context={"rides": sorted_list})
-    return sorted_list
+    return {
+        "success": "True",
+        "message": f"Rides for {car_no}",
+        "data": json.dumps(sorted_list)
+    }
 
 
 @app.get('/lines')
@@ -307,7 +319,11 @@ async def get_lines(request: Request, user_agent: Annotated[str | None, Header()
         return templates.TemplateResponse(request=request, name="lines.j2",
                                           context={"lines": lines})
 
-    return lines
+    return {
+        "success": "True",
+        "message": "Here are the lines.",
+        "date": json.dumps(lines)
+    }
 
 @app.post('/add_ride')
 async def add_ride(request: Request, car_no: Annotated[str, Form()], line: Annotated[str, Form()],
@@ -322,8 +338,16 @@ async def add_ride(request: Request, car_no: Annotated[str, Form()], line: Annot
             return templates.TemplateResponse(request=request, name="add_ride.j2",
                                               context={"lines": lines,
                                                        "status": f"Added {car_no} on {await get_line_longname(line)}."})
-        return {json.dumps(return_status)}
-    return None
+        return {
+            "success": "True",
+            "message": f"Added {return_status['car_no']} to line {return_status['line']}.",
+            "data": json.dumps(return_status)
+        }
+    return {
+        "success": "False",
+        "message": "Coulnn't add a ride for some reason. :shrug:",
+        "data": ""
+    }
 
 
 @app.get('/scrub')
@@ -355,11 +379,11 @@ async def scrub_test_rides(request: Request, user_agent: Annotated[str | None, H
                                           context={"valid_count": len(valid_rides),
                                                    "scrub_count": len(scrubbed_rides)})
 
-    if scrubbed_rides:
-        return {"message": f"Scrubbed values above {CAR_NO_LIMIT}",
-                "values": scrubbed_rides}
-    return {"message": "No rides scrubbed."}
-
+    return {
+        "success": "True",
+        "message": f"Scrubbed {len(scrubbed_rides)} rides.",
+        "data": {json.dumps(scrubbed_rides)}
+    }
 
 @app.get('/stock')
 async def stock_report(request: Request, user_agent: Annotated[str | None, Header()] = None):
@@ -386,17 +410,29 @@ async def stock_report(request: Request, user_agent: Annotated[str | None, Heade
             stock_counts['CQ312'] += 1
 
     if is_browser(user_agent):
-        listed_counts = []
+        counts_as_list = []
         for key, value in stock_counts.items():
-            listed_counts.append((key, value))
-        print(f"{listed_counts=}")
+            counts_as_list.append((key, value))
+        print(f"{counts_as_list=}")
         return templates.TemplateResponse(request=request, name="stock_report.j2",
-                                          context={"stock_counts": listed_counts})
-    return {"contents": stock_counts}
+                                          context={"stock_counts": counts_as_list})
+    return {
+        "success": "True",
+        "message": "Stock Report",
+        "data": stock_counts
+    }
 
 @app.get("/ping")
-async def ping():
+async def ping(request: Request, user_agent: Annotated[str | None, Header()] = None):
     """
     A URL to make sure this is working
     """
-    return {"app_name": APP_NAME, "version": APP_VERSION}
+    if is_browser(user_agent):
+        return templates.TemplateResponse(request=request, name="ping.j2",
+                                          context={"app_name": APP_NAME,
+                                                   "app_version": APP_VERSION})
+    return {
+        "success": "True",
+        "message": "PONG!",
+        "data": { "app_name": APP_NAME, "version": APP_VERSION }
+    }
