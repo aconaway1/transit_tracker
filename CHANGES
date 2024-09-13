@@ -1,15 +1,6 @@
-Version 1.1
+Version 1.1.1
 
-- Added user-agent detection
-- Fixes #37
-- Deprecated `/report` for `/rides`
-- Removed `/report` from `footer.j2`
-- Removed `/report` from `tests/main_test.py`
-- Updated all directives to return HTML or JSON based on user-agent
-- Added templates for each HTML-based response
-- Fixed trailing slash in URL for `/scrub`
-- Added `push_to_github()` during `/scrub`
-- Fixes #34
-- Sending line longname to `/add_ride`
-- Fixed #38
-- Updated `README.md`
+- Added `css.j2` to include consistent CSS
+- Converted HTML templates to use `css.j2`
+- Stole a CSS from a site to make it all consistent
+- Fixes #36
