@@ -125,10 +125,13 @@ add an application.
 
 ## Templates
 
-- `add_ride.j2`: The output from submitting a ride
+- `add_ride.j2`: The HTML template from submitting a ride
 - `toot.j2`: The format of the Mastodon update
 - `footer.j2`: The same footer for every page shown
-- `ride_report.j2`: The format for the ride report
+- `ride_report.j2`: The HTML template for the ride report
+- `stock_report.j2`: The HTML template for the stock report
+- `scrub.j2`: The HTML template for the scrub reply
+- `lines.j2`: The HTML template for the line report
 
 ## Docker Files
 

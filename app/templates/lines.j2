@@ -48,16 +48,14 @@ table.greyGridTable tfoot td {
             <TABLE class="greyGridTable">
                 <THEAD>
                     <TR>
-                        <TD>Car No</TD>
-                        <TD>Date</TD>
-                        <TD>Line</TD>
+                        <TD>Line Name</TD>
+                        <TD>Line Abbr</TD>
                     </TR>
                 </THEAD>
                 <TBODY>
-            {%- for ride in rides %}<TR>
-                    <TD>{{ ride.car_no}}</TD>
-                    <TD>{{ ride.date }}</TD>
-                    <TD>{{ ride.line }}</TD>
+            {%- for line in lines %}<TR>
+                    <TD>{{ line['longname'] }}</TD>
+                    <TD>{{ line['shortname'] }}</TD>
                 </TR>
                 {% endfor %}</TBODY>
             </TABLE>

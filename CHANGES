@@ -1,9 +1,15 @@
-Version 1.0
+Version 1.1
 
-- Fixes #33
-- Version 1.0
-- Updated `README.md` for some clarity
-- Cleaned up `docker-compose.yml` and `Dockerfile` a bit
-- Python to version 3.12 now
-- Removed import and scrubbing CLI utilities
-- Linted
+- Added user-agent detection
+- Fixes #37
+- Deprecated `/report` for `/rides`
+- Removed `/report` from `footer.j2`
+- Removed `/report` from `tests/main_test.py`
+- Updated all directives to return HTML or JSON based on user-agent
+- Added templates for each HTML-based response
+- Fixed trailing slash in URL for `/scrub`
+- Added `push_to_github()` during `/scrub`
+- Fixes #34
+- Sending line longname to `/add_ride`
+- Fixed #38
+- Updated `README.md`
