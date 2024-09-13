@@ -1,6 +1,7 @@
 """
 A web interface to track MARTA car rides
 """
+import re
 from datetime import datetime
 from typing import Annotated
 import base64
@@ -8,7 +9,7 @@ import hashlib
 import json
 import requests
 import yaml
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, Header
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from mastodon import Mastodon
@@ -45,7 +46,7 @@ def get_rides() -> list:
     with open(SEEN_CARS_FILE, encoding="utf8") as file:
         return yaml.safe_load(file)
 
-def get_a_ride(queried_car_no: int) -> list :
+def get_rides_on_a_car(queried_car_no: int) -> list :
     """
     Return a list of rides on a particular car
     """
@@ -233,6 +234,15 @@ def update_from_github():
 
     return returned_content
 
+def is_browser(user_agent) -> bool:
+    """
+    Detect if the given user agent is a browser or not
+    """
+    result = re.search("Mozilla", user_agent)
+    if result:
+        return True
+    return False
+
 env_vars = load_env()
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -246,84 +256,79 @@ async def startup():
         response = update_from_github()
 
 
-@app.get('/', response_class=HTMLResponse)
-async def main(request: Request):
+@app.get('/')
+async def main(request: Request, user_agent: Annotated[str | None, Header()] = None):
     """
     Show a form when / is called via get
     """
-    lines = load_lines()
-    return templates.TemplateResponse(request=request, name="add_ride.j2", context={"lines": lines})
+    if is_browser(user_agent):
+        lines = load_lines()
+        return templates.TemplateResponse(request=request, name="add_ride.j2", context={"lines": lines})
+    return {"app_name": APP_NAME, "version": APP_VERSION}
 
 
 @app.get('/rides')
-async def get_all_rides():
+async def get_all_rides(request: Request, user_agent: Annotated[str | None, Header()] = None):
     """
     Show the user the cars observed
     """
-    return get_rides()
+    rides = get_rides()
+    sorted_list = sorted(rides, key=lambda x: int(x['car_no']))
+    if is_browser(user_agent):
+        list_expanded = []
+        for ride in sorted_list:
+            added_record = {"car_no": ride['car_no'], "date": ride['date'], "line": await get_line_longname(ride['line'])}
+            list_expanded.append(added_record)
+        return templates.TemplateResponse(request=request, name="rides.j2",
+                                          context={"rides": list_expanded})
+    return sorted_list
 
 
 @app.get('/rides/{car_no}')
-async def get_car(car_no):
+async def get_car(request: Request, user_agent: Annotated[str | None, Header()] = None, car_no = 0):
     """
     Show the user a specific car observed
     """
-    return get_a_ride(queried_car_no=car_no)
+    seen_rides = get_rides_on_a_car(queried_car_no=car_no)
+    sorted_list = sorted(seen_rides, key=lambda x: int(x['car_no']))
+    if is_browser(user_agent):
+        return templates.TemplateResponse(request=request, name="rides.j2",
+                                          context={"rides": sorted_list})
+    return sorted_list
 
 
 @app.get('/lines')
-async def get_lines():
+async def get_lines(request: Request, user_agent: Annotated[str | None, Header()] = None):
     """
     Show the user the lines available
     """
-    return load_lines()
+    lines = load_lines()
+    if is_browser(user_agent):
+        return templates.TemplateResponse(request=request, name="lines.j2",
+                                          context={"lines": lines})
+
+    return lines
 
 @app.post('/add_ride')
-async def add_ride(request: Request, car_no: Annotated[str, Form()], line: Annotated[str, Form()]):
+async def add_ride(request: Request, car_no: Annotated[str, Form()], line: Annotated[str, Form()],
+                   user_agent: Annotated[str | None, Header()] = None):
     """
     Call to add a new ride
     """
     return_status = await add_ride_instance(car_no, line)
     if return_status:
-        # return HTMLResponse(f"You observed car {car_no} on line {line}.")
         lines = load_lines()
-        return templates.TemplateResponse(request=request, name="add_ride.j2",
-                                          context={"lines": lines,
-                                                   "status": f"Added {car_no} on {line}"})
-    return False
+        if is_browser(user_agent):
+            return templates.TemplateResponse(request=request, name="add_ride.j2",
+                                              context={"lines": lines,
+                                                       "status": f"Added {car_no} on {await get_line_longname(line)}."})
+        return {json.dumps(return_status)}
+    return None
 
 
-@app.get('/report')
-async def ride_report(request: Request):
-    """
-    Show the use a ride report
-    """
-    ride_data = []
-    rail_lines = load_lines()
-    with open(SEEN_CARS_FILE, encoding="utf8") as file:
-        seen_cars = yaml.safe_load(file)
-
-    for ride in seen_cars:
-        found_line = False
-        long_line = ""
-        for rail_line in rail_lines:
-            if str(ride['line']) == rail_line['shortname']:
-                long_line = rail_line['longname']
-                found_line = True
-        if found_line:
-            ride_record = {"car_no": ride['car_no'], "date": ride['date'], "line": long_line}
-        else:
-            ride_record = ride
-        ride_data.append(ride_record)
-
-    sorted_list = sorted(ride_data, key=lambda x: int(x['car_no']))
-
-    return templates.TemplateResponse(request=request, name="ride_report.j2",
-                                      context={"rides": sorted_list})
-
-@app.get('/scrub/')
+@app.get('/scrub')
 # async def scrub_test_rides(request: Request):
-async def scrub_test_rides():
+async def scrub_test_rides(request: Request, user_agent: Annotated[str | None, Header()] = None):
     """
     Remove all ride with car_no > CAR_NO_LIMIT
     """
@@ -343,6 +348,13 @@ async def scrub_test_rides():
             yaml_record = yaml.dump([ride])
             f.write(yaml_record)
 
+    push_to_github()
+
+    if is_browser(user_agent):
+        return templates.TemplateResponse(request=request, name="scrub.j2",
+                                          context={"valid_count": len(valid_rides),
+                                                   "scrub_count": len(scrubbed_rides)})
+
     if scrubbed_rides:
         return {"message": f"Scrubbed values above {CAR_NO_LIMIT}",
                 "values": scrubbed_rides}
@@ -350,12 +362,12 @@ async def scrub_test_rides():
 
 
 @app.get('/stock')
-async def stock_report():
+async def stock_report(request: Request, user_agent: Annotated[str | None, Header()] = None):
     """
     Show the user a summary of the rolling stock ridden
     """
     rides = get_rides()
-    stock_count = {
+    stock_counts = {
         "CQ310": 0,
         "CQ311": 0,
         "CQ312": 0,
@@ -363,18 +375,24 @@ async def stock_report():
     }
     for ride in rides:
         if int(ride['car_no']) >= 101 and int(ride['car_no']) <= 200:
-            stock_count['CQ310'] += 1
+            stock_counts['CQ310'] += 1
         if int(ride['car_no']) >= 501 and int(ride['car_no']) <= 520:
-            stock_count['CQ310'] += 1
+            stock_counts['CQ310'] += 1
         if int(ride['car_no']) >= 201 and int(ride['car_no']) <= 320:
-            stock_count['CQ311'] += 1
+            stock_counts['CQ311'] += 1
         if int(ride['car_no']) >= 601 and int(ride['car_no']) <= 664:
-            stock_count['CQ312'] += 1
+            stock_counts['CQ312'] += 1
         if int(ride['car_no']) >= 667 and int(ride['car_no']) <= 702:
-            stock_count['CQ312'] += 1
+            stock_counts['CQ312'] += 1
 
-    return {"CQ310": stock_count["CQ310"], "CQ311": stock_count["CQ311"],
-            "CQ312": stock_count["CQ312"]}
+    if is_browser(user_agent):
+        listed_counts = []
+        for key, value in stock_counts.items():
+            listed_counts.append((key, value))
+        print(f"{listed_counts=}")
+        return templates.TemplateResponse(request=request, name="stock_report.j2",
+                                          context={"stock_counts": listed_counts})
+    return {"contents": stock_counts}
 
 @app.get("/ping")
 async def ping():
