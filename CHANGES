@@ -1,4 +1,6 @@
-Version 1.1.2
+Polishing
 
-- Consistent API responses
-- Fixes #39
+- Removed random print statements
+- Fixes #43
+- Changed `/rides/X` to return line long name
+- Fixes #47
