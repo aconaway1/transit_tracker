@@ -1,3 +1,4 @@
 app/__pycache__
 CHANGES
 app/env.yml
+data/transit.log

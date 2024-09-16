@@ -81,6 +81,12 @@ mastodon:
   mastodon_enabled: True
   mastodon_base_url: "<URL TO MASTODON INSTANCE>"
   mastodon_token: "<MASTODON APP TOKEN>"
+logging:
+  logging_enabled: True
+  logging_level: 10
+  log_file: "transit.log"
+  log_file_mode: "w"
+  log_format: "%(asctime)s - %(levelname)s - %(message)s"
 ```
 This file has sensitive information in it, so it's not part of the repo. You're going to have to generate the file
 yourself and put it in the `app` folder.
@@ -123,6 +129,28 @@ If you don't want to post to Mastodon, set `mastodon_enabled` to `False`.
 as a "getting started" point. In summary, while in your Mastodon account, go to `Preferences > Development` and
 add an application.
 
+### Logging Config
+
+**NOTE**: The implementation of logging here is terrible. It's just like "turn on logging and send some stuff." This
+means you'll see some logs from other modules - particularly `requests` that is used to talk to Slack, GitHub, etc.
+It's not too many messages, but this definitely needs to be fixed with a custom logger at some point.
+
+The `logging` section is for setting up logging to file. Do a search on `python logging` if you want to tweak this.
+
+If you don't want to enable logging, set `logging_enabled` to `False`.
+
+The `logging_level` is the value the Python `logging` module will use. The module wants a built-in value, but those
+just map to integers. Debug is 10.
+
+The `log_file` is...you guessed it! This file is in the `/code/data` folder on the containers so that the host OS
+can read it.
+
+The `log_file_mode` is the file mode. It's set to `w` here to overwrite. You could set it to `a` to append if you want
+to keep the logs across container instance starts.
+
+The `log_format` is how the log message will appear in the file. By default, we have a date & time, the logging level,
+and the message. This should be good enough for like 99% of uses.
+
 ## Templates
 
 - `add_ride.j2`: The HTML template from submitting a ride
@@ -161,6 +189,5 @@ There's a **LOT** to do still.
 
 - Actually check some input for once in your life!
 - Make sure remote connections (GitHub, Slack, Mastodon) actually work
-- User-Agent checking to return HTML or JSON appropriately
 - Better look of the GUI
 - Instructions on running it remotely with some semblance of security
