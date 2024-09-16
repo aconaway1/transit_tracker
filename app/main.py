@@ -300,8 +300,15 @@ async def get_car(request: Request, user_agent: Annotated[str | None, Header()] 
     seen_rides = get_rides_on_a_car(queried_car_no=car_no)
     sorted_list = sorted(seen_rides, key=lambda x: int(x['car_no']))
     if is_browser(user_agent):
+        returned_rides = []
+        for ride in sorted_list:
+            returned_rides.append({
+                "car_no": ride['car_no'],
+                "date": ride['date'],
+                "line": await get_line_longname(ride['line'])
+            })
         return templates.TemplateResponse(request=request, name="rides.j2",
-                                          context={"rides": sorted_list})
+                                          context={"rides": returned_rides})
     return {
         "success": "True",
         "message": f"Rides for {car_no}",
@@ -413,7 +420,6 @@ async def stock_report(request: Request, user_agent: Annotated[str | None, Heade
         counts_as_list = []
         for key, value in stock_counts.items():
             counts_as_list.append((key, value))
-        print(f"{counts_as_list=}")
         return templates.TemplateResponse(request=request, name="stock_report.j2",
                                           context={"stock_counts": counts_as_list})
     return {
