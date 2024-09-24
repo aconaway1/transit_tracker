@@ -10,26 +10,55 @@ simple form that I can use to record my rides.
 
 I run this one my home machine and connect in via ZeroTier to access it. Works like a champ!
 
-# Usage
+# Installation
 
-The `docker-compose.yml` file is set up to look for an image `transit_tracker` with a tag of `latest`. You'll
-initially have to build this yourself using the `Dockerfile`.
+## Requirements
+
+This app run on Docker to make things easier. This means that you don't have to manage the modules, the packages,
+or anything. You just have to make sure Docker is working. As of today (September 2024), I'm running this successfully
+on Docker Desktop 4.32.0 on my laptop and Docker 24.0.7 with Docker Compose 2.3.3 on my Ubuntu nodes in the cloud.
+
+Just a note here - `docker-compose` and `docker compose` are different things. You'll need Docker Compose version 2
+to get this working.
+
+Git is also required here. I don't think the version is important, but, as soon as I type this, something will come up.
+LOL
+
+## Setup
+
+Clone the repo by going to your working directory (where you want the app to run) by typing this.
+
+> git clone https://github.com/aconaway1/transit_tracker.git
+
+This will download the repo into your current directory in a folder called `transit_tracker`. Basic Git stuff here.
+
+A very important file is missing, though. [The `env.yml` file](#yaml-data) contains most of the configuration info, so
+create one of those using proper data and put it in the `app/` folder inside the repo.
+
+The whole thing is set up to look for an image `transit_tracker` with a tag of `latest` in your Docker image list.
+You'll initially have to build this yourself using the `Dockerfile`. From the `transit-tracker` directory, run this.
 
 > docker build -t transit_tracker:latest .
 
-This will build a new Python image based on the `Dockerfile` directives. It will then bring up
-the container with local port `8000` bound to container port `8000`. It will also
-mount the `data` folder to the container so the observed cars are seen between
-runs of the app.
+This will build a new Python container image based on the `Dockerfile` directives. It might take a few minutes initially as
+it downloads the images and put them in the image list.
 
-*The process of building a container with Docker is outside the scope of this document, but there
-are plenty of resources that can help. If you can't get it running, let me know, and I'll see what I can do.*
+## Running
 
-When the image is built, you can turn up the container by running this.
+Bring up the app by running this command from the `transit_tracker` directory.
 
 > docker compose up -d
 
+This will bring up the container with local port `8000` bound to container port `8000`. It will also
+mount the `data` folder to the container so the observed cars are seen between runs of the app.
+
 Point your browser at `http://localhost:8000` to see if a form comes up.
+
+## Stopping
+
+From the `transit_tracker` directory, type this to stop it.
+
+> docker compose down
 
 # The Details
 
