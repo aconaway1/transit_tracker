@@ -23,7 +23,7 @@ CAR_NO_LIMIT = 9999
 CONN_TIMEOUT = 10
 
 APP_NAME = "Aaron's Transit Tracker"
-APP_VERSION = "1.1.3"
+APP_VERSION = "2.0"
 
 
 def load_lines() -> list:
@@ -247,15 +247,24 @@ def is_browser(user_agent) -> bool:
 env_vars = load_env()
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-
+logger = logging.getLogger(__name__)
 if env_vars['logging']['logging_enabled']:
-    logging.basicConfig(level=env_vars['logging']['logging_level'],
-                        filename=f"/code/data/{env_vars['logging']['log_file']}",
-                        filemode=env_vars['logging']['log_file_mode'],
-                        format=env_vars['logging']['log_format'])
+    file_handler = logging.FileHandler(
+        filename=f"/code/data/{env_vars['logging']['log_file']}",
+        mode=env_vars['logging']['log_file_mode'],
+        encoding="utf8",
+
+    )
+    formatter = logging.Formatter(
+        env_vars['logging']['log_format']
+    )
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    logger.setLevel(env_vars['logging']['log_level'])
 else:
-    logging.disable()
-logging.debug(f"Starting up {APP_NAME} version {APP_VERSION}.")
+    logger.disabled = True
+
+logger.critical(f"Starting up {APP_NAME} version {APP_VERSION}.")
 
 @app.on_event("startup")
 async def startup():
@@ -264,7 +273,7 @@ async def startup():
     """
     if env_vars['github']['github_download_on_startup'] and env_vars['github']['github_enabled']:
         response = update_from_github()
-        logging.debug(f"Pulled update from GitHub: {len(response)}")
+        logger.debug(f"Pulled update from GitHub: {len(response)}")
 
 
 @app.get('/')
@@ -274,9 +283,9 @@ async def main(request: Request, user_agent: Annotated[str | None, Header()] = N
     """
     if is_browser(user_agent):
         lines = load_lines()
-        logging.debug(f"Returning HTML result for '/'")
+        logger.debug(f"Returning HTML result for '/'")
         return templates.TemplateResponse(request=request, name="add_ride.j2", context={"lines": lines})
-    logging.debug(f"Returning JSON result for '/'")
+    logger.debug(f"Returning JSON result for '/'")
     return {
         "success": "True",
         "message": "This is the root. You have to do something else to make progress.",
@@ -296,10 +305,10 @@ async def get_all_rides(request: Request, user_agent: Annotated[str | None, Head
         for ride in sorted_list:
             added_record = {"car_no": ride['car_no'], "date": ride['date'], "line": await get_line_longname(ride['line'])}
             list_expanded.append(added_record)
-        logging.debug(f"Returning HTML result for '/rides'")
+        logger.debug(f"Returning HTML result for '/rides'")
         return templates.TemplateResponse(request=request, name="rides.j2",
                                           context={"rides": list_expanded})
-    logging.debug(f"Returning JSON result for '/rides'")
+    logger.debug(f"Returning JSON result for '/rides'")
     return {
         "success": "True",
         "message": f"All rides",
@@ -322,10 +331,10 @@ async def get_car(request: Request, user_agent: Annotated[str | None, Header()] 
                 "date": ride['date'],
                 "line": await get_line_longname(ride['line'])
             })
-        logging.debug(f"Returning HTML result for '/rides/{car_no}'")
+        logger.debug(f"Returning HTML result for '/rides/{car_no}'")
         return templates.TemplateResponse(request=request, name="rides.j2",
                                           context={"rides": returned_rides})
-    logging.debug(f"Returning JSON result for '/rides/{car_no}'")
+    logger.debug(f"Returning JSON result for '/rides/{car_no}'")
     return {
         "success": "True",
         "message": f"Rides for {car_no}",
@@ -340,10 +349,10 @@ async def get_lines(request: Request, user_agent: Annotated[str | None, Header()
     """
     lines = load_lines()
     if is_browser(user_agent):
-        logging.debug(f"Returning HTML result for '/lines'")
+        logger.debug(f"Returning HTML result for '/lines'")
         return templates.TemplateResponse(request=request, name="lines.j2",
                                           context={"lines": lines})
-    logging.debug(f"Returning JSON result for '/lines'")
+    logger.debug(f"Returning JSON result for '/lines'")
     return {
         "success": "True",
         "message": "Here are the lines.",
@@ -360,17 +369,17 @@ async def add_ride(request: Request, car_no: Annotated[str, Form()], line: Annot
     if return_status:
         lines = load_lines()
         if is_browser(user_agent):
-            logging.debug(f"Returning HTML result for POST to '/add_ride'")
+            logger.debug(f"Returning HTML result for POST to '/add_ride'")
             return templates.TemplateResponse(request=request, name="add_ride.j2",
                                               context={"lines": lines,
                                                        "status": f"Added {car_no} on {await get_line_longname(line)}."})
-        logging.debug(f"Returning JSON result for POST to '/add_ride'")
+        logger.debug(f"Returning JSON result for POST to '/add_ride'")
         return {
             "success": "True",
             "message": f"Added {return_status['car_no']} to line {return_status['line']}.",
             "data": json.dumps(return_status)
         }
-    logging.warning(f"FAILED to submit a POST to '/add_ride'")
+    logger.warning(f"FAILED to submit a POST to '/add_ride'")
     return {
         "success": "False",
         "message": "Couldn't add a ride for some reason. :shrug:",
@@ -394,7 +403,7 @@ async def scrub_test_rides(request: Request, user_agent: Annotated[str | None, H
             scrubbed_rides.append(ride)
         else:
             valid_rides.append(ride)
-    logging.debug(f"Scrubbed {SEEN_CARS_FILE}")
+    logger.debug(f"Scrubbed {SEEN_CARS_FILE}")
     with open(SEEN_CARS_FILE, encoding="utf8", mode='w') as f:
         for ride in valid_rides:
             yaml_record = yaml.dump([ride])
@@ -403,11 +412,11 @@ async def scrub_test_rides(request: Request, user_agent: Annotated[str | None, H
     push_to_github()
 
     if is_browser(user_agent):
-        logging.debug(f"Returning HTML result for '/scrub'")
+        logger.debug(f"Returning HTML result for '/scrub'")
         return templates.TemplateResponse(request=request, name="scrub.j2",
                                           context={"valid_count": len(valid_rides),
                                                    "scrub_count": len(scrubbed_rides)})
-    logging.debug(f"Returning JSON result for '/scrub'")
+    logger.debug(f"Returning JSON result for '/scrub'")
     return {
         "success": "True",
         "message": f"Scrubbed {len(scrubbed_rides)} rides.",
@@ -442,10 +451,10 @@ async def stock_report(request: Request, user_agent: Annotated[str | None, Heade
         counts_as_list = []
         for key, value in stock_counts.items():
             counts_as_list.append((key, value))
-        logging.debug(f"Returning HTML result for '/stock'")
+        logger.debug(f"Returning HTML result for '/stock'")
         return templates.TemplateResponse(request=request, name="stock_report.j2",
                                           context={"stock_counts": counts_as_list})
-    logging.debug(f"Returning JSON result for '/stock'")
+    logger.debug(f"Returning JSON result for '/stock'")
     return {
         "success": "True",
         "message": "Stock Report",
@@ -458,11 +467,11 @@ async def ping(request: Request, user_agent: Annotated[str | None, Header()] = N
     A URL to make sure this is working
     """
     if is_browser(user_agent):
-        logging.debug(f"Returning JSON result for '/ping'")
+        logger.debug(f"Returning JSON result for '/ping'")
         return templates.TemplateResponse(request=request, name="ping.j2",
                                           context={"app_name": APP_NAME,
                                                    "app_version": APP_VERSION})
-    logging.debug(f"Returning JSON result for '/ping'")
+    logger.debug(f"Returning JSON result for '/ping'")
     return {
         "success": "True",
         "message": "PONG!",

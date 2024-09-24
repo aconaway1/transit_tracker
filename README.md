@@ -83,7 +83,7 @@ mastodon:
   mastodon_token: "<MASTODON APP TOKEN>"
 logging:
   logging_enabled: True
-  logging_level: 10
+  log_level: 10
   log_file: "transit.log"
   log_file_mode: "w"
   log_format: "%(asctime)s - %(levelname)s - %(message)s"
@@ -139,7 +139,7 @@ The `logging` section is for setting up logging to file. Do a search on `python 
 
 If you don't want to enable logging, set `logging_enabled` to `False`.
 
-The `logging_level` is the value the Python `logging` module will use. The module wants a built-in value, but those
+The `log_level` is the value the Python `logging` module will use. The module wants a built-in value, but those
 just map to integers. Debug is 10.
 
 The `log_file` is...you guessed it! This file is in the `/code/data` folder on the containers so that the host OS

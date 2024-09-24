@@ -1,7 +1,6 @@
-Version 1.1.3
+Version 2.0
 
-- Ticked to version 1.1.3
-- Added rudimentary logging
-- Logs to `/code/data/{log_file}`, which can be seen by base system
-- Updated `README.md`
-- Fixes #46
+- Added customer logger
+- Fixes #50
+- Changed to `log_level` in `env.yml`
+- Added link to `/ping` in `footer.j2`
