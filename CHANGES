@@ -1,4 +1,7 @@
-Docs Update
+Version 2.0
 
-- Updated `README.md` to include installation directions.
-- Fixes #51
+- Added customer logger
+- Fixes #50
+- Changed to `log_level` in `env.yml`
+- Added link to `/ping` in `footer.j2`
+
