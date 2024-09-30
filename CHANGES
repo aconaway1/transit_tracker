@@ -1,7 +1,7 @@
-Version 2.0
+Version 2.0.1
 
-- Added customer logger
-- Fixes #50
-- Changed to `log_level` in `env.yml`
-- Added link to `/ping` in `footer.j2`
+- Added `tools` directory to keep some utilities
+- Added `date_converter.py` to convert all spreadsheet-style dates to a standard format
+- Updated `README.md` with new tool
+- Added tag `v2.0.1`
 

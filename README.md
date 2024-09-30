@@ -212,6 +212,25 @@ any new instance is working.
 
 > python -m unittest main/test_main.py
 
+## `tools/date_converter.py`
+
+Originally, I was keeping track of my rides in a spreadsheet, so some of the dates are in the `MM/DD/YYYY` format. I
+wrote this little script to convert all the old-style dates to `YYYY-MM-DD` like the rest of the app.
+
+It opens the `data/seen_cars.yml`, runs through each record, converts dates as needed, and writes the records back
+to file. No output to the screen unless something breaks.
+
+**NOTE:** If you run this and start the app with `github_download_on_startup` set to `True`, all those changes will
+be overwritten.
+
+Fixes include
+
+* settin that to `False` to keep it from downloading a new copy and overwriting,
+* hand-copying your repo file after you convert it, or
+* running this thing while the app is already running.
+
+> python tools/data_converter.py
+
 # TODO
 
 There's a **LOT** to do still.
