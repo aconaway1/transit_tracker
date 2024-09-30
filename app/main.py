@@ -23,7 +23,7 @@ CAR_NO_LIMIT = 9999
 CONN_TIMEOUT = 10
 
 APP_NAME = "Aaron's Transit Tracker"
-APP_VERSION = "2.0"
+APP_VERSION = "2.0.1"
 
 
 def load_lines() -> list:
