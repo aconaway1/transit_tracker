@@ -1,7 +1,4 @@
 Version 2.0.1
 
-- Added `tools` directory to keep some utilities
-- Added `date_converter.py` to convert all spreadsheet-style dates to a standard format
-- Updated `README.md` with new tool
-- Added tag `v2.0.1`
+- Updated `README.md` with security section
 
