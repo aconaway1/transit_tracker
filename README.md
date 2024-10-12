@@ -8,9 +8,20 @@ ridden. I've got a spreadsheet, but that's pretty cumbersome when I'm trying
 to get on and off the train. I fired off this Python app that presents a very
 simple form that I can use to record my rides.
 
-I run this one my home machine and connect in via ZeroTier to access it. Works like a champ!
-
 # Installation
+
+## Security
+
+This thing has absolutely no security. No AAA. No WAF. No filtering. If you put up an instance on the open Internet,
+it will be owned in a matter of moments, so don't do it.
+
+## Network Position
+
+You can run it on your home machine or some $cloud_provider (I do both!). That's the beauty of Docker.
+
+You will need some type of VPN to access it, though. I use [ZeroTier](https://www.zerotier.com/) myself, and it works 
+great. I have the ZeroTier client installed on my phone, so I can pull up the interface on my phone from the train.
+ZeroTier is definitely not a requirement, but I'm familiar with it. Use your own remote access solution at will.
 
 ## Requirements
 
@@ -19,7 +30,7 @@ or anything. You just have to make sure Docker is working. As of today (Septembe
 on Docker Desktop 4.32.0 on my laptop and Docker 24.0.7 with Docker Compose 2.3.3 on my Ubuntu nodes in the cloud.
 
 Just a note here - `docker-compose` and `docker compose` are different things. You'll need Docker Compose version 2
-to get this working.
+(`docker compose`) to get this working.
 
 Git is also required here. I don't think the version is important, but, as soon as I type this, something will come up.
 LOL
